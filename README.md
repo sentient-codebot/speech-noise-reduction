@@ -15,3 +15,9 @@ mini-project of EE4182 Digital Audio and Speech Processing
 ### Optional:
 
 * Implement a multi-microphone system
+
+### File description: 
+
+* importfile.m  call MATLAB built-in functions to import any type of file. 
+required by create_dataset.m. Need not running. 
+* create_dataset.m import clean speech and add noise. Store resulted noisy speech to .mat. Need only running once. 
