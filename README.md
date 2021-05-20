@@ -16,8 +16,19 @@ mini-project of EE4182 Digital Audio and Speech Processing
 
 * Implement a multi-microphone system
 
-### File description: 
+## File description 
+
+### main function
+
+* main.m the main function which implements the whole noise reduction pipeline
+
+### utility functions
+
+* frame.m function to frame the original sound signal
+
+* attach_frame.m function to overlap framed signals
 
 * importfile.m  call MATLAB built-in functions to import any type of file. 
 required by create_dataset.m. Need not running. 
+
 * create_dataset.m import clean speech and add noise. Store resulted noisy speech to .mat. Need only running once. 
