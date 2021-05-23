@@ -25,6 +25,7 @@ for i = 1:3
 end
 
 noisy_1 = awgn(clean_1,SNR,'measured');
+%   norm(clean_1,2) == 40.9257
 noisy_2 = awgn(clean_2,SNR,'measured');
 
 
