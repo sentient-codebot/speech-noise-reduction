@@ -1,4 +1,4 @@
-function sigma_N2 = noise_track(Yl,sigma_N2_past,options)
+function [sigma_N2,GLR] = noise_track(Yl,sigma_N2_past,options)
 % track noise PSD
 % method:
 %   MMSE based with SPP. Assuming N and S prior has complex Gaussian distribution
@@ -6,6 +6,7 @@ function sigma_N2 = noise_track(Yl,sigma_N2_past,options)
 %   Yk: Y_k(l)
 % output:
 %   sigma_N2 = \hat{sigma_{N,k}^2(l)}
+%   GLR = generalized likelihood ratio
 
     arguments
         Yl (:,1) 
@@ -31,11 +32,11 @@ function sigma_N2 = noise_track(Yl,sigma_N2_past,options)
     P_H0_post = 1-P_H1_post;
     
     E_cond = P_H0_post.*abs(Yl).^2+P_H1_post.*sigma_N2_past;
+    % E_cond = conditional mean of |Nk(l)|^2 on Yk(l)
     
     sigma_N2 = options.alpha*sigma_N2_past+(1-options.alpha)*E_cond; 
-        % E_cond = conditional mean of |Nk(l)|^2 on Yk(l)
-
-
+    
+    GLR = P_H1.*p_Y_on_H1./P_H0./p_Y_on_H0;
 
 
 end

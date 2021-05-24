@@ -13,7 +13,7 @@ output=[];
 real_sigma_N2=[];
 real_sigma_S2=[];
 K = 60; % observe ONLY ONE frequency band
-sigma_N2 = 0.065; % initial value, acquired by cheating
+sigma_N2 = 0.065; % initial value
 %   0.09 is usable for noisy_1
 frame_count = 0;
 while next<length(noisy_1)
