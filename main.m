@@ -6,7 +6,7 @@
 addpath("data\")
 load("data\data.mat")
 
-%% frame + dft + ... + idft + overlap + store back
+%% frame + dft + parameter estimate + apply gain + idft + overlap + store back
 next = 1;
 OVERLAP_RATIO = 0.5;
 output=[];
