@@ -67,7 +67,7 @@ plot(x_values, y_values)
 
 %% histfit
 figure()
-pd_name = 'gp';
+pd_name = 'rayleigh';
 histfit(S_mag',250,pd_name)
 pdf = fitdist(S_mag',pd_name);
 
