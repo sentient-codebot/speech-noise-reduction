@@ -5,6 +5,24 @@
 %% load data
 addpath("data\")
 load("data\data.mat")
+load("data\Gain_1_1.mat")
+%   load Gain_gamma_nu.mat
+%   possible Gain options:
+%   gamma   |   nu
+%   1       |   1
+%   1       |   1.5
+%   1       |   2
+%   2       |   0.5
+%   2       |   1       % standard Wiener Gain
+%   2       |   1.5
+%   2       |   2
+
+%% select gain function
+gain_name = 'wiener';
+% gain_name = 'wiener';
+% gain_name = 'other';
+% gain_name = 'richard';
+
 
 %% frame + dft + parameter estimate + apply gain + idft + overlap + store back
 next = 1;
@@ -38,10 +56,23 @@ while next<length(noisy_1)
         (1-alpha_DD)*max(abs(Yl).^2./sigma_N2-1,0);
 %     SNR_priori(K)
     %% processing 3: apply Gain function
-    % Wiener Gain
-%     Sl = SNR_priori./(SNR_priori+1).*Yl; % SNR/(SNR+1) = P_SS/P_YY
-    % MMSE Gain (Magnitude of S Rayleigh distributed)
-    Sl = mmse_gain(GLR,SNR_priori,abs(Yl).^2./sigma_N2).*Yl;
+    if strcmp(gain_name, 'wiener')
+        % Wiener Gain
+        Sl = SNR_priori./(SNR_priori+1).*Yl; % SNR/(SNR+1) = P_SS/P_YY
+    elseif strcmp(gain_name,'other')
+        % MMSE Gain (Magnitude of S Rayleigh distributed)
+        Sl = mmse_gain(GLR,SNR_priori,abs(Yl).^2./sigma_N2).*Yl;
+    elseif strcmp(gain_name,'richard')
+        % Richard Gain
+        gain = lookup_gain_in_table(Gain,...
+            abs(Yl).^2./sigma_N2,...
+            SNR_priori,...
+            [-40,50],[-40,50],1);
+        Sl = gain.*Yl;
+    else 
+        Sl = Yl;
+    end
+
     GLRs = [GLRs;GLR];
     sigma_NK2=[sigma_NK2;sigma_N2(K)];
     P_H1_posts=[P_H1_posts;P_H1_post(K)];
