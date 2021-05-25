@@ -18,7 +18,7 @@ load("data\Gain_1_1.mat")
 %   2       |   2
 
 %% select gain function
-gain_name = 'wiener';
+gain_name = 'richard';
 % gain_name = 'wiener';
 % gain_name = 'other';
 % gain_name = 'richard';
