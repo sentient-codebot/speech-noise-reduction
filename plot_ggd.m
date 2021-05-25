@@ -1,6 +1,6 @@
 % plot generalized gamma distribution density function
 
-para_gamma = 2;
+para_gamma = 1;
 nu = 1;
 beta = 1; % default
 
