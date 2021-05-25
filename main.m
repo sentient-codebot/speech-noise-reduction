@@ -88,13 +88,16 @@ end
 figure
 subplot(3,1,1)
 % plot(output(1:length(clean_1)),'.')
-hold on
+% hold on
 plot(clean_1)
+axis([-inf inf -0.6 0.6])
 % reduced_mse = norm(output(1:length(clean_1))-clean_1,2)
 subplot(3,1,2)
-plot(output(1:length(clean_1)))
+plot(2*output(1:length(clean_1)))
+axis([-inf inf -0.6 0.6])
 subplot(3,1,3)
 plot(noisy_1)
+axis([-inf inf -0.6 0.6])
 % noisy_mse = norm(noisy_1(1:length(clean_1))-clean_1,2) 
 % NOTE: it's not fair to compare the mse in time domain, because spectral
 % magnitude mse is what we truly care about. 
