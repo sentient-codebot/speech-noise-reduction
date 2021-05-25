@@ -33,15 +33,15 @@ while next<length(noisy_1)
         'P_H1',0.8); % which alpha should be used?
 %     sigma_N2 = true_sigma_N2;
     %% processing 2: a priori SNR estimate (DD method)
-    alpha_DD = 0.99;
+    alpha_DD = 0.98;
     SNR_priori = alpha_DD*abs(Sl).^2./sigma_N2+...
         (1-alpha_DD)*max(abs(Yl).^2./sigma_N2-1,0);
 %     SNR_priori(K)
     %% processing 3: apply Gain function
     % Wiener Gain
-    Sl = SNR_priori./(SNR_priori+1).*Yl; % SNR/(SNR+1) = P_SS/P_YY
+%     Sl = SNR_priori./(SNR_priori+1).*Yl; % SNR/(SNR+1) = P_SS/P_YY
     % MMSE Gain (Magnitude of S Rayleigh distributed)
-%     Sl = mmse_gain(GLR,SNR_priori,abs(Yl).^2./sigma_N2).*Yl;
+    Sl = mmse_gain(GLR,SNR_priori,abs(Yl).^2./sigma_N2).*Yl;
     GLRs = [GLRs;GLR];
     sigma_NK2=[sigma_NK2;sigma_N2(K)];
     P_H1_posts=[P_H1_posts;P_H1_post(K)];
