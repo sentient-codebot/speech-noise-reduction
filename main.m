@@ -17,11 +17,14 @@ load("data\Gain_1_1.mat")
 %   2       |   1.5
 %   2       |   2
 
+noisy = noisy_1;
+clean = clean_1;
+
 %% select gain function
-gain_name = 'wiener';
+gain_name = 'hendriks';
 % gain_name = 'wiener';
 % gain_name = 'other';
-% gain_name = 'richard';
+% gain_name = 'hendriks';
 
 
 %% frame + dft + parameter estimate + apply gain + idft + overlap + store back
@@ -37,10 +40,10 @@ GLRs = [];
 sigma_NK2=[];
 P_H1_posts=[];
 K = 11;
-while next<length(noisy_1)
+while next<length(noisy)
     %% frame
     frame_count = frame_count+1;
-    [yl, next] = frame(noisy_1, next, "overlap_ratio", OVERLAP_RATIO);
+    [yl, next] = frame(noisy, next, "overlap_ratio", OVERLAP_RATIO);
     
     %% dft
     Yl = fft(yl.*hann(320));
@@ -87,37 +90,58 @@ end
 %% show result
 figure
 subplot(3,1,1)
-% plot(output(1:length(clean_1)),'.')
+% plot(output(1:length(clean)),'.')
 % hold on
-plot(clean_1)
+plot(clean)
 axis([-inf inf -0.6 0.6])
-% reduced_mse = norm(output(1:length(clean_1))-clean_1,2)
+% reduced_mse = norm(output(1:length(clean))-clean,2)
 subplot(3,1,2)
-plot(2*output(1:length(clean_1)))
+plot(2*output(1:length(clean)))
 axis([-inf inf -0.6 0.6])
 subplot(3,1,3)
-plot(noisy_1)
+plot(noisy)
 axis([-inf inf -0.6 0.6])
-% noisy_mse = norm(noisy_1(1:length(clean_1))-clean_1,2) 
+% noisy_mse = norm(noisy(1:length(clean))-clean,2) 
 % NOTE: it's not fair to compare the mse in time domain, because spectral
 % magnitude mse is what we truly care about. 
 
+
 %% metrics
-metrics = MethodMetrics;
-
-normalized_mag_MSE = dft_mag_mse(clean_1, output);
-STOI_output = stoi(clean_1, output(1:length(clean_1)), fs);
-
-metrics.Method = gain_name;
-metrics.Noise = 'gaussian';
-metrics.MagnitudeMSE = normalized_mag_MSE;
-metrics.STOI = STOI_output;
-metrics
+normalized_mag_MSE = dft_mag_mse(clean, output);
+STOI_output = stoi(clean, output(1:length(clean)), fs);
 
 clear SavedMetrics
 load('data\SavedMetrics.mat','SavedMetrics')
-SavedMetrics = [SavedMetrics;metrics];
+Method = {gain_name};
+Noise = {'gaussian'};
+MagnitudeMSE = normalized_mag_MSE;
+STOI = STOI_output;
+Datetime = datetime;
+t = table(Method,Noise,MagnitudeMSE,STOI,Datetime);
+SavedMetrics = [SavedMetrics;t]
 save('data\SavedMetrics.mat','SavedMetrics')
 
+writetable(SavedMetrics,'SavedMetrics.xlsx')
 
 
+%% metrics (deprecated)
+% 
+% 
+% metrics = MethodMetrics;
+% 
+% normalized_mag_MSE = dft_mag_mse(clean, output);
+% STOI_output = stoi(clean, output(1:length(clean)), fs);
+% 
+% metrics.Method = gain_name;
+% metrics.Noise = 'gaussian';
+% metrics.MagnitudeMSE = normalized_mag_MSE;
+% metrics.STOI = STOI_output;
+% metrics
+% 
+% clear SavedMetrics
+% load('data\SavedMetrics.mat','SavedMetrics')
+% SavedMetrics = [SavedMetrics;metrics];
+% save('data\SavedMetrics.mat','SavedMetrics')
+% 
+% 
+% 
