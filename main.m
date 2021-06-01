@@ -62,7 +62,7 @@ while next<length(noisy_1)
     elseif strcmp(gain_name,'other')
         % MMSE Gain (Magnitude of S Rayleigh distributed)
         Sl = mmse_gain(GLR,SNR_priori,abs(Yl).^2./sigma_N2).*Yl;
-    elseif strcmp(gain_name,'richard')
+    elseif strcmp(gain_name,'hendriks')
         % Richard Gain
         gain = lookup_gain_in_table(Gain,...
             abs(Yl).^2./sigma_N2,...
@@ -101,4 +101,23 @@ axis([-inf inf -0.6 0.6])
 % noisy_mse = norm(noisy_1(1:length(clean_1))-clean_1,2) 
 % NOTE: it's not fair to compare the mse in time domain, because spectral
 % magnitude mse is what we truly care about. 
+
+%% metrics
+metrics = MethodMetrics;
+
+normalized_mag_MSE = dft_mag_mse(clean_1, output);
+STOI_output = stoi(clean_1, output(1:length(clean_1)), fs);
+
+metrics.Method = gain_name;
+metrics.Noise = 'gaussian';
+metrics.MagnitudeMSE = normalized_mag_MSE;
+metrics.STOI = STOI_output;
+metrics
+
+clear SavedMetrics
+load('data\SavedMetrics.mat','SavedMetrics')
+SavedMetrics = [SavedMetrics;metrics];
+save('data\SavedMetrics.mat','SavedMetrics')
+
+
 
