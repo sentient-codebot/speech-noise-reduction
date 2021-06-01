@@ -17,14 +17,28 @@ load("data\Gain_1_1.mat")
 %   2       |   1.5
 %   2       |   2
 
-noisy = noisy_1;
 clean = clean_1;
 
+noisy = noisy_babble_1;
+%   available:
+%       noisy_1: gaussian
+%       noisy_2: gaussian
+%       noisy_arti_1: artificial_nonstat
+%       noisy_spee_1: speech_shaped
+%       noisy_babble_1: babble
+noise_type = 'babble';
+%   noise_type should of one of the following:
+%       'gaussian'
+%       'artificial_nonstat'
+%       'speech_shaped'
+%       'babble'
+
 %% select gain function
-gain_name = 'hendriks';
+gain_name = 'none';
 % gain_name = 'wiener';
 % gain_name = 'other';
 % gain_name = 'hendriks';
+% gain_name = 'none'
 
 
 %% frame + dft + parameter estimate + apply gain + idft + overlap + store back
@@ -72,7 +86,7 @@ while next<length(noisy)
             SNR_priori,...
             [-40,50],[-40,50],1);
         Sl = gain.*Yl;
-    else 
+    elseif strcmp(gain_name,'none')
         Sl = Yl;
     end
 
@@ -113,7 +127,7 @@ STOI_output = stoi(clean, output(1:length(clean)), fs);
 clear SavedMetrics
 load('data\SavedMetrics.mat','SavedMetrics')
 Method = {gain_name};
-Noise = {'gaussian'};
+Noise = {noise_type};
 MagnitudeMSE = normalized_mag_MSE;
 STOI = STOI_output;
 Datetime = datetime;
@@ -133,7 +147,7 @@ writetable(SavedMetrics,'SavedMetrics.xlsx')
 % STOI_output = stoi(clean, output(1:length(clean)), fs);
 % 
 % metrics.Method = gain_name;
-% metrics.Noise = 'gaussian';
+% metrics.Noise = noise_type;
 % metrics.MagnitudeMSE = normalized_mag_MSE;
 % metrics.STOI = STOI_output;
 % metrics
