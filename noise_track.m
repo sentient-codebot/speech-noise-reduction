@@ -7,7 +7,7 @@ function [sigma_N2,GLR,P_smooth,P_H1_post] = noise_track(Yl,sigma_N2_past,P_smoo
 % output:
 %   sigma_N2 = \hat{sigma_{N,k}^2(l)}
 %   GLR = generalized likelihood ratio
-
+ 
     arguments
         Yl (:,1) 
         sigma_N2_past (:,1) {mustBePositive} 
@@ -17,7 +17,7 @@ function [sigma_N2,GLR,P_smooth,P_H1_post] = noise_track(Yl,sigma_N2_past,P_smoo
         options.P_H1 (:,1) {mustBeNonnegative} = 0.5
         %options.P_H0 (1,1) === 1 - options.P_H1
             % NOTE: not in dB
-    end
+    end 
     
     
     p_Y_on_H0 = 1./(sigma_N2_past*pi).*exp(-abs(Yl).^2./sigma_N2_past);
