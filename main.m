@@ -19,14 +19,14 @@ load("data\Gain_1_1.mat")
 
 clean = clean_1;
 
-noisy = noisy_babble_1;
+noisy = noisy_arti_1;
 %   available:
 %       noisy_1: gaussian
 %       noisy_2: gaussian
 %       noisy_arti_1: artificial_nonstat
 %       noisy_spee_1: speech_shaped
 %       noisy_babble_1: babble
-noise_type = 'babble';
+noise_type = 'artificial_nonstat';
 %   noise_type should of one of the following:
 %       'gaussian'
 %       'artificial_nonstat'
@@ -34,19 +34,39 @@ noise_type = 'babble';
 %       'babble'
 
 %% select gain function
-gain_name = 'none';
+gain_name = 'wiener';
 % gain_name = 'wiener';
 % gain_name = 'other';
 % gain_name = 'hendriks';
 % gain_name = 'none'
 
+%% use 25 frames to get initial sigma_N2
+next = 1;
+OVERLAP_RATIO = 0.5;
+pnn = zeros(320,1);
+frame_count = 0;
+while next<8000
+    %% frame
+    frame_count = frame_count+1;
+    [yl, next] = frame(noisy, next, "overlap_ratio", OVERLAP_RATIO);
+    
+    %% dft
+    Yl = fft(yl.*hann(320))/sqrt(320);
+    
+    %% processing 1: noise PSD tracking
+    pnn = pnn + abs(Yl).^2;
+    
+end
+pnn = pnn/frame_count;
+
 
 %% frame + dft + parameter estimate + apply gain + idft + overlap + store back
 next = 1;
-OVERLAP_RATIO = 0.5;
+
 output=[];
 frame_count = 0;
-sigma_N2 = 0.09*ones(320,1);
+%sigma_N2 = 0.09*ones(320,1);
+sigma_N2 = max(0.09,pnn);
 SNR_priori = 31.62*ones(320,1); % 15dB optimal according to literature, why?
 Sl = 0*ones(320,1); % how much?
 P_smooth = 0.5*ones(320,1);
@@ -64,9 +84,12 @@ while next<length(noisy)
     
     %% processing 1: noise PSD tracking
     [sigma_N2,GLR,P_smooth,P_H1_post] = noise_track(Yl,sigma_N2,P_smooth,....
-        'alpha',0.8,... % 0.8 according to literature? 0.97 works
+        'alpha',0.95,... % 0.8 according to literature? 0.97 works
         'P_H1',0.8); % which alpha should be used?
 %     sigma_N2 = true_sigma_N2;
+%     if frame_count <= 50
+%         sigma_N2 = pnn;
+%     end
     %% processing 2: a priori SNR estimate (DD method)
     alpha_DD = 0.98;
     SNR_priori = alpha_DD*abs(Sl).^2./sigma_N2+...

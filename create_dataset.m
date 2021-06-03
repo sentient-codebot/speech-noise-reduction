@@ -39,6 +39,10 @@ noisy_arti_1 = artificial_nonstat(1:length(clean_1))*amp_arti + clean_1;
 noisy_babble_1 = babble(1:length(clean_1))*amp_babble + clean_1;
 noisy_spee_1 = speech_shaped(1:length(clean_1))*amp_spee + clean_1;
 
+noisy_arti_2 = artificial_nonstat(1:length(clean_2))*amp_arti + clean_2;
+noisy_babble_2 = babble(1:length(clean_2))*amp_babble + clean_2;
+noisy_spee_2 = speech_shaped(1:length(clean_2))*amp_spee + clean_2;
+
 % save([filefolder,'data.mat'],'clean_1','clean_2','babble',...
 %     'noisy_1','noisy_2','fs')
 
