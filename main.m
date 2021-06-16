@@ -19,14 +19,14 @@ load("data\Gain_1_1.mat")
 
 clean = clean_1;
 
-noisy = noisy_arti_1;
+noisy = noisy_babble_1;
 %   available:
 %       noisy_1: gaussian
 %       noisy_2: gaussian
 %       noisy_arti_1: artificial_nonstat
 %       noisy_spee_1: speech_shaped
 %       noisy_babble_1: babble
-noise_type = 'artificial_nonstat';
+noise_type = 'babble';
 %   noise_type should of one of the following:
 %       'gaussian'
 %       'artificial_nonstat'
@@ -34,31 +34,37 @@ noise_type = 'artificial_nonstat';
 %       'babble'
 
 %% select gain function
-gain_name = 'wiener';
+gain_name = 'hendriks';
 % gain_name = 'wiener';
 % gain_name = 'other';
 % gain_name = 'hendriks';
 % gain_name = 'none'
 
+%% frame size = FRAME_LEN
+
+FRAME_LEN = 320;
+
+
 %% use 25 frames to get initial sigma_N2
 next = 1;
 OVERLAP_RATIO = 0.5;
-pnn = zeros(320,1);
+initial_noise_PSD = zeros(FRAME_LEN/2+1,1);
 frame_count = 0;
-while next<8000
+while frame_count<5 % next<8000
     %% frame
     frame_count = frame_count+1;
     [yl, next] = frame(noisy, next, "overlap_ratio", OVERLAP_RATIO);
     
     %% dft
-    Yl = fft(yl.*hann(320))/sqrt(320);
+    Yl = fft(yl.*hann(FRAME_LEN));
     
     %% processing 1: noise PSD tracking
-    pnn = pnn + abs(Yl).^2;
+    initial_noise_PSD = initial_noise_PSD + abs(Yl(1:FRAME_LEN/2+1)).^2;
     
 end
-pnn = pnn/frame_count;
+initial_noise_PSD = initial_noise_PSD/frame_count;
 
+%initial_noise_PSD = [initial_noise_PSD;flipud(initial_noise_PSD(2:end-1))];
 
 %% frame + dft + parameter estimate + apply gain + idft + overlap + store back
 next = 1;
@@ -66,21 +72,22 @@ next = 1;
 output=[];
 frame_count = 0;
 %sigma_N2 = 0.09*ones(320,1);
-sigma_N2 = max(0.09,pnn);
-SNR_priori = 31.62*ones(320,1); % 15dB optimal according to literature, why?
-Sl = 0*ones(320,1); % how much?
-P_smooth = 0.5*ones(320,1);
+sigma_N2 = max(0.09,initial_noise_PSD);
+SNR_priori = 31.62*ones(FRAME_LEN/2+2,1); % 31.62=15dB optimal according to literature, why?
+Sl = 0*ones(FRAME_LEN/2+1,1); % how much?
+P_smooth = 0.5*ones(FRAME_LEN/2+1,1);
 GLRs = [];
 sigma_NK2=[];
 P_H1_posts=[];
-K = 11;
+K = 11; % just for observation
 while next<length(noisy)
     %% frame
     frame_count = frame_count+1;
     [yl, next] = frame(noisy, next, "overlap_ratio", OVERLAP_RATIO);
     
     %% dft
-    Yl = fft(yl.*hann(320));
+    Yl = fft(yl.*hann(FRAME_LEN));
+    Yl = Yl(1:FRAME_LEN/2+1); % 0~N/2
     
     %% processing 1: noise PSD tracking
     [sigma_N2,GLR,P_smooth,P_H1_post] = noise_track(Yl,sigma_N2,P_smooth,....
@@ -107,7 +114,7 @@ while next<length(noisy)
         gain = lookup_gain_in_table(Gain,...
             abs(Yl).^2./sigma_N2,...
             SNR_priori,...
-            [-40,50],[-40,50],1);
+            [-40:50],[-40:50],1);
         Sl = gain.*Yl;
     elseif strcmp(gain_name,'none')
         Sl = Yl;
@@ -117,7 +124,7 @@ while next<length(noisy)
     sigma_NK2=[sigma_NK2;sigma_N2(K)];
     P_H1_posts=[P_H1_posts;P_H1_post(K)];
     %% idft
-    sl = ifft(Sl);
+    sl = ifft([Sl;flipud(conj(Sl(2:end-1)))]);
     
     %% overlap
     output = attach_frame(output, sl, "overlap_ratio", OVERLAP_RATIO);

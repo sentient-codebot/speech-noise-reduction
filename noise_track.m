@@ -4,6 +4,7 @@ function [sigma_N2,GLR,P_smooth,P_H1_post] = noise_track(Yl,sigma_N2_past,P_smoo
 %   MMSE based with SPP. Assuming N and S prior has complex Gaussian distribution
 % input: 
 %   Yk: Y_k(l)
+%   P_smooth_past: avoid getting stuck
 % output:
 %   sigma_N2 = \hat{sigma_{N,k}^2(l)}
 %   GLR = generalized likelihood ratio
