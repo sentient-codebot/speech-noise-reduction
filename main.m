@@ -43,7 +43,7 @@ gain_name = 'hendriks';
 %% frame size = FRAME_LEN
 
 FRAME_LEN = 320;
-
+MIN_GAIN = 10^(-20/20);
 
 %% use 25 frames to get initial sigma_N2
 next = 1;
@@ -86,12 +86,12 @@ while next<length(noisy)
     [yl, next] = frame(noisy, next, "overlap_ratio", OVERLAP_RATIO);
     
     %% dft
-    Yl = fft(yl.*hann(FRAME_LEN));
+    Yl = fft(yl.*sqrt(hanning(FRAME_LEN,'periodic')));
     Yl = Yl(1:FRAME_LEN/2+1); % 0~N/2
     
     %% processing 1: noise PSD tracking
     [sigma_N2,GLR,P_smooth,P_H1_post] = noise_track(Yl,sigma_N2,P_smooth,....
-        'alpha',0.95,... % 0.8 according to literature? 0.97 works
+        'alpha',0.8,... % 0.8 according to literature? 0.97 works
         'P_H1',0.8); % which alpha should be used?
 %     sigma_N2 = true_sigma_N2;
 %     if frame_count <= 50
@@ -100,12 +100,16 @@ while next<length(noisy)
     %% processing 2: a priori SNR estimate (DD method)
     alpha_DD = 0.98;
     SNR_priori = alpha_DD*abs(Sl).^2./sigma_N2+...
-        (1-alpha_DD)*max(abs(Yl).^2./sigma_N2-1,0);
-%     SNR_priori(K)
+        (1-alpha_DD)*max(abs(Yl).^2./sigma_N2-1,eps);
+    
+    if frame_count==1
+        SNR_priori = max(abs(Yl).^2./sigma_N2-1,eps);
+    end
+    
     %% processing 3: apply Gain function
     if strcmp(gain_name, 'wiener')
         % Wiener Gain
-        Sl = SNR_priori./(SNR_priori+1).*Yl; % SNR/(SNR+1) = P_SS/P_YY
+        Sl = max(MIN_GAIN,SNR_priori./(SNR_priori+1)).*Yl; % SNR/(SNR+1) = P_SS/P_YY
     elseif strcmp(gain_name,'other')
         % MMSE Gain (Magnitude of S Rayleigh distributed)
         Sl = mmse_gain(GLR,SNR_priori,abs(Yl).^2./sigma_N2).*Yl;
@@ -114,8 +118,8 @@ while next<length(noisy)
         gain = lookup_gain_in_table(Gain,...
             abs(Yl).^2./sigma_N2,...
             SNR_priori,...
-            [-40:50],[-40:50],1);
-        Sl = gain.*Yl;
+            -40:50,-40:50,1);
+        Sl = max(MIN_GAIN,gain).*Yl;
     elseif strcmp(gain_name,'none')
         Sl = Yl;
     end
@@ -127,7 +131,7 @@ while next<length(noisy)
     sl = ifft([Sl;flipud(conj(Sl(2:end-1)))]);
     
     %% overlap
-    output = attach_frame(output, sl, "overlap_ratio", OVERLAP_RATIO);
+    output = attach_frame(output, sqrt(hanning(FRAME_LEN,'periodic')).*sl, "overlap_ratio", OVERLAP_RATIO);
     
 end
 
